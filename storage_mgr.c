@@ -80,7 +80,7 @@ RC readBlock (int pageNum, SM_FileHandle *fHandle, SM_PageHandle memPage);
 {
 // Check for mgmt_Info and if its proper and check for no of pages (If more return RC_READ_NON_EXISTING_PAGE 4) then read block
 
-// Seek it to no of pages passed fseek(file pointer,PAGE_SIZE(no of pages-1) + (pagenumblocks-1)*blk_size,SEEK_CUR))
+// Seek it to no of pages passed fseek(file pointer,PAGE_SIZE(no of pages-1) + (pagenumblocks-1),SEEK_SET))
 
 // fread (page handle,sizeof page,no of blocks to read,fp)
 
@@ -137,11 +137,50 @@ RC readLastBlock (SM_FileHandle *fHandle, SM_PageHandle memPage)
 `
 /* writing blocks to a page file */
 
-extern RC writeBlock (int pageNum, SM_FileHandle *fHandle, SM_PageHandle memPage);
+RC writeBlock (int pageNum, SM_FileHandle *fHandle, SM_PageHandle memPage)
+{
+// Check for existene
+// Check for page existence
+// Seek it to no of pages passed fseek(file pointer,PAGE_SIZE(no of pages-1),SEEK_SET))
+// Check for access mode If success 
+// fwrite (page handle,PAGE_SIZE,1,fp)
+// If failure then set RC_WRITE_FAILED 3 
+// Set the current position of page in a file
+}
 
-extern RC writeCurrentBlock (SM_FileHandle *fHandle, SM_PageHandle memPage);
+RC writeCurrentBlock (SM_FileHandle *fHandle, SM_PageHandle memPage);
+{
+// Check for existence
+// Check for page existence
+// Seek it to no of pages passed fseek(file pointer,0,SEEK_CUR))
+// Check for access mode If success 
+// fwrite (page handle,PAGE_SIZE,1,fp)
+// If failure then set RC_WRITE_FAILED 3 
+// Set the current position of page in a file
+return RC;
+}
+RC appendEmptyBlock (SM_FileHandle *fHandle)
+{
+//Check for existence
 
-extern RC appendEmptyBlock (SM_FileHandle *fHandle);
+// open file in write mode
 
-extern RC ensureCapacity (int numberOfPages, SM_FileHandle *fHandle);
+// Fill it with null bytes for first page (of PAGE_SIZE)
 
+// update no of pages = pages +1
+
+// Seek it to last page fseek(file pointer,0,SEEK_END)
+
+// Fill it with \0 bytes for PAGE_SIZE bytes
+
+// current page position to last page
+return RC;
+}
+RC ensureCapacity (int numberOfPages, SM_FileHandle *fHandle);
+{
+//Check for existence
+// check for no of pages in file handle
+// if less do nothing
+//if more update no of pages
+return RC;
+}
