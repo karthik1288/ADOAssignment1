@@ -73,7 +73,7 @@ rval = check_access(File_Pointer,r);
 		printf("\nFile named %s opened successfully",fHandle->fileName);
 		FILE_SIZE = stat_sample.st_size;
 		printf("\nFile opened successfully");
-		if (stat(fileName, &stat_sample) == 0)
+		if (stat(fHandle->fileName, &stat_sample) == 0)
 		// Then divide by PAGE_SIZE
 		Page_Blocks = (FILE_SIZE)/PAGE_SIZE;
 			// Assign no of pages to struct element
@@ -83,7 +83,7 @@ rval = check_access(File_Pointer,r);
 			fHandle -> totalNumPages = Page_Blocks ;
 		// initilize rest 2 and mgmt_Info to 0
         	fHandle -> mgmtInfo = File_Pointer;
-		fHandle -> fileName = fileName;
+			fHandle -> fileName = fileName;
         	fHandle -> curPagePos = 0;
         	Return_Code = RC_OK;
 		}
@@ -461,27 +461,33 @@ return Return_Code;
 RC ensureCapacity (int numberOfPages, SM_FileHandle *fHandle);
 {
 RC Return_Code;
-int ctr;
-// Check for mgmt_Info and if its proper 
-if ( fHandle -> mgmtInfo = NULL)
+int ctr,pageBlocks,hold_size;
+boolean set;
+struct stat stat_instance;
+
+ // Check for mgmt_Info and if its proper 
+if (stat(fHandle-> fileName, &stat_instance) == 0)
 {
-Return_Code = RC_FILE_HANDLE_NOT_INIT;
-printf("\nHandle seeking error");
-}
-else
-{
-	// check for no of pages in file handle
-	if ( fHandle -> totalNumPages > numberOfPages)
+pageBlocks = (stat_instance.st_size) / PAGE_SIZE;
+	if ((stat_instance.st_size) % PAGE_SIZE > 0)
+	pageBlocks = pageBlocks+1;
+	if(pageBlocks > numberOfPages)
+	set = FALSE;
+	else 
+	set = TRUE;
+	if(set)
 	{
-	// if less do nothing
-	Return_Code = RC_OK;
-	goto end;
+	hold_size = (numberOfPages - pageBlocks) *PAGE_SIZE;
+	for (ctr = 0 ; ctr < hold_size ; ctr ++)
+	fprintf (fHandle->mgmtInfo, "%c", '\0');
 	}
 	else
-	// if more update no of pages
-	// update no of pages to no of pages passed
-	fHandle -> totalNumPages = numberOfPages;
-end:
+	printf ("\nWe already ensured capacity");
+Return_Code = RC_OK;
+else
+{
+printf ("\nHandle error");
+Return_Code = RC_FILE_HANDLE_NOT_INIT;
 }
 return Return_Code;
 }
