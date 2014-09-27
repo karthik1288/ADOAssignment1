@@ -120,7 +120,8 @@ rval = check_access(fileName,'r');
         	fHandle -> curPagePos = 0;
         	Return_Code = RC_OK;
 		}
-	
+		}
+	}
 	else
 	{
 	// if file doesnt exists then return file not found error RC_FILE_NOT_FOUND 1 or no read access
@@ -131,36 +132,25 @@ exit:
 return Return_Code;
 }
 
-RC closePageFile (SM_FileHandle *fHandle);
+RC closePageFile (SM_FileHandle *fHandle)
 {
 RC Return_Code;
 FILE *File_Pointer; 
 int rval;
 
 //Check for file existence
-rval = check_access(fileName,'e');
-	//Check fo existence
-	if (rval != -1)
-	{
-	printf("\n File exists");
-		if (fHandle == NULL)
-		Return_Code = RC_FILE_HANDLE_NOT_INIT; 
-		//if exists, check mgmtInfo  
-		else if (fclose ((fHandle->mgmtInfo) == 0))  
-		{
-		printf("\nFile named %s closed successfully",fHandle->fileName);
-		Return_Code = RC_OK;
-		}
-		else 
-		printf("\nFile closing error");
-		Return_Code = RC_FILE_HANDLE_NOT_INIT;
-	}
-	else
-	{
-	//If not,file not found exception RC_FILE_NOT_FOUND 1 
-	printf("\n File doesnt exists");
-	Return_Code = RC_FILE_NOT_FOUND;
-	}
+//Check fo existence
+if (fHandle == NULL)
+Return_Code = RC_FILE_HANDLE_NOT_INIT; 
+//if exists, check mgmtInfo  
+else if (fclose ((fHandle->mgmtInfo) == 0))  
+{
+printf("\nFile named %s closed successfully",fHandle->fileName);
+Return_Code = RC_OK;
+}
+else 
+printf("\nFile closing error");
+Return_Code = RC_FILE_HANDLE_NOT_INIT;
 return Return_Code;
 }
 
@@ -179,13 +169,13 @@ if (rval != -1)
 	// if exists ,try deleting
 	if(remove(fileName) == 0)
 	{
-	printf("\nFile named %s deleted",fHandle -> fileName); 
+	printf("\nFile named %s deleted", fileName); 
 	Return_Code = RC_OK;
 	}
 	else
 	{
 	// If anything else say File cant be destroyed as being used
-	printf("\nFile named %s cant be deleted",fHandle -> fileName); 	 
+	printf("\nFile named %s cant be deleted", fileName); 	 
 	Return_Code = RC_FILE_HANDLE_NOT_INIT;
 	}
 }
@@ -200,7 +190,7 @@ return Return_Code;
 
 /* reading blocks from disc */
 
-RC readBlock (int pageNum, SM_FileHandle *fHandle, SM_PageHandle memPage);
+RC readBlock (int pageNum, SM_FileHandle *fHandle, SM_PageHandle memPage)
 {
 RC Return_Code;
 // Check for mgmt_Info and if its proper 
@@ -227,6 +217,7 @@ else
 	// Set the position of page in a file
 	fHandle->curPagePos=pageNum;
 	Return_Code = RC_OK ;
+	}
 }
 return Return_Code;
 }
@@ -431,7 +422,7 @@ else
 return Return_Code;
 }
 
-RC writeCurrentBlock (SM_FileHandle *fHandle, SM_PageHandle memPage);
+RC writeCurrentBlock (SM_FileHandle *fHandle, SM_PageHandle memPage)
 {
 RC Return_Code;
 // Check for mgmt_Info and if its proper 
@@ -443,7 +434,7 @@ printf("\nHandle seeking error");
 else
 {
 	// check for no of pages (If more return RC_READ_NON_EXISTING_PAGE 4) then write block
-	if( pageNum > fHandle-> totalNumPages )
+	if(fHandle->curPagePos > fHandle-> totalNumPages )
 	{
 	Return_Code = RC_READ_NON_EXISTING_PAGE;
 	printf("\nPage requested wasn't found");
@@ -474,6 +465,7 @@ return Return_Code;
 
 RC appendEmptyBlock (SM_FileHandle *fHandle)
 {
+FILE *File_Pointer;
 RC Return_Code;
 int ctr;
 // Check for mgmt_Info and if its proper 
@@ -498,13 +490,12 @@ Return_Code = RC_OK;
 return Return_Code;
 }
 
-RC ensureCapacity (int numberOfPages, SM_FileHandle *fHandle);
+RC ensureCapacity (int numberOfPages, SM_FileHandle *fHandle)
 {
 RC Return_Code;
 int ctr,pageBlocks,hold_size,set;
 struct stat stat_instance;
-
- // Check for mgmt_Info and if its proper 
+// Check for mgmt_Info and if its proper 
 if (stat(fHandle-> fileName, &stat_instance) == 0)
 {
 pageBlocks = (stat_instance.st_size) / PAGE_SIZE;
@@ -531,5 +522,3 @@ Return_Code = RC_FILE_HANDLE_NOT_INIT;
 }
 return Return_Code;
 }
-
-
