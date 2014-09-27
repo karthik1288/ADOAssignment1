@@ -1,4 +1,4 @@
-#inlcude "stdio.h"
+#include "stdio.h"
 #include "stdlib.h"
 #include "dberror.h"
 #include "sys/stat.h"
@@ -6,10 +6,42 @@
 #include "fcntl.h"            // File control
 #include "unistd.h"           // For access and file existence
 
-initStorageManager ()
-{//initialize any of varibales if needed
-}
+//initStorageManager ()
+//{//initialize any of varibales if needed
+//}
 
+int check_access (char *fn,char type)
+{
+int amode,rval;
+switch ( type ) 
+{
+case 'e':
+// for existence
+amode = 00;
+break;
+
+case 'r':
+// for reading
+amode = 04;
+break;
+
+case 'w':
+// for writing
+amode = 02;
+break;
+
+case 'x':
+// for reading and writing
+amode = 06;
+break;
+
+default:
+// return -1
+return -1;
+break;
+}
+return access(fn, amode);
+}
 
 
 RC createPageFile (char *fileName)
@@ -18,7 +50,7 @@ RC Return_Code;
 FILE *File_Pointer; 
 int rval,ctr; 
 //Check for existence
-rval = check_access(fileName,e);
+rval = check_access(fileName,'e');
 	if( rval != -1)
 	{
 	//if exists say file already exists
@@ -53,19 +85,19 @@ RC openPageFile (char *fileName, SM_FileHandle *fHandle)
 RC Return_Code;
 FILE *File_Pointer; 
 int rval;
-struct stat stat_instance;
+struct stat stat_sample;
 unsigned long int Page_Blocks,FILE_SIZE;
-rval = check_access(File_Pointer,r);
+rval = check_access(fileName,'r');
 	//Check fo existence
 	if (rval != -1)
 	{
 	printf("\n File exists and has read access");
-	File_Pointer = fopen(fileNanme, "r+");
+	File_Pointer = fopen(fileName, "r+");
 		if(File_Pointer == NULL)
 		{
 		printf("\nYou have no read access to this file");
 		Return_Code = RC_FILE_HANDLE_NOT_INIT;
-		goto exit:
+		goto exit;
 		}
 		else
 		{
@@ -74,6 +106,7 @@ rval = check_access(File_Pointer,r);
 		FILE_SIZE = stat_sample.st_size;
 		printf("\nFile opened successfully");
 		if (stat(fHandle->fileName, &stat_sample) == 0)
+		{
 		// Then divide by PAGE_SIZE
 		Page_Blocks = (FILE_SIZE)/PAGE_SIZE;
 			// Assign no of pages to struct element
@@ -94,7 +127,7 @@ rval = check_access(File_Pointer,r);
 	printf("\n File doesnt exists");
 	Return_Code = RC_FILE_NOT_FOUND;
 	}
-exit;
+exit:
 return Return_Code;
 }
 
@@ -105,7 +138,7 @@ FILE *File_Pointer;
 int rval;
 
 //Check for file existence
-rval = check_access(File_Pointer,e);
+rval = check_access(fileName,'e');
 	//Check fo existence
 	if (rval != -1)
 	{
@@ -138,7 +171,7 @@ FILE *File_Pointer;
 int rval;
 
 //Check for file existence
-rval = check_access(File_Pointer,e);
+rval = check_access(fileName,'e');
 //Check fo existence
 if (rval != -1)
 	{
@@ -155,6 +188,7 @@ if (rval != -1)
 	printf("\nFile named %s cant be deleted",fHandle -> fileName); 	 
 	Return_Code = RC_FILE_HANDLE_NOT_INIT;
 	}
+}
 else
 {
 //If not,file not found exception RC_FILE_NOT_FOUND 1 
@@ -179,8 +213,10 @@ else
 {
 	// check for no of pages (If more return RC_READ_NON_EXISTING_PAGE 4) then read block
 	if( pageNum > fHandle-> totalNumPages )
+	{
 	Return_Code = RC_READ_NON_EXISTING_PAGE;
 	printf("\nPage requested wasn't found");
+	}
 	else
 	{
 	// Seek it to no of pages passed fseek(file pointer,PAGE_SIZE(no of pages-1),SEEK_SET))
@@ -258,8 +294,9 @@ else
 	printf("\nReading previous block...");
 	fread ( memPage, PAGE_SIZE , 1, fHandle -> mgmtInfo);
 	// Set the position of page in a file
-	fHandle->curPagePos= curPagePos-1 ;
+	fHandle->curPagePos= fHandle->curPagePos-1 ;
 	Return_Code = RC_OK ;
+	}
 }
 return Return_Code;
 }
@@ -288,6 +325,7 @@ else
 	printf("\nReading current block...");
 	fread ( memPage, PAGE_SIZE , 1, fHandle -> mgmtInfo);
 	Return_Code = RC_OK ;
+	}
 }
 return Return_Code;
 }
@@ -316,8 +354,9 @@ else
 	printf("\nReading previous block...");
 	fread ( memPage, PAGE_SIZE , 1, fHandle -> mgmtInfo);
 	// Set the position of page in a file
-	fHandle->curPagePos= curPagePos+1 ;
+	fHandle->curPagePos= fHandle->curPagePos+1 ;
 	Return_Code = RC_OK ;
+	}
 }
 return Return_Code;
 }
@@ -347,7 +386,7 @@ else
 return Return_Code;
 }
 
-`
+
 /* writing blocks to a page file */
 
 RC writeBlock (int pageNum, SM_FileHandle *fHandle, SM_PageHandle memPage)
@@ -375,6 +414,7 @@ else
 		// fwrite (page handle,PAGE_SIZE,1,fp)
 		printf("\nReading current block...");
 		if (fwrite ( memPage, PAGE_SIZE , 1, fHandle -> mgmtInfo) != 0)
+		{
 		// Set the current position of page in a file
 		fHandle->curPagePos=pageNum;
 		Return_Code = RC_OK ;
@@ -461,8 +501,7 @@ return Return_Code;
 RC ensureCapacity (int numberOfPages, SM_FileHandle *fHandle);
 {
 RC Return_Code;
-int ctr,pageBlocks,hold_size;
-boolean set;
+int ctr,pageBlocks,hold_size,set;
 struct stat stat_instance;
 
  // Check for mgmt_Info and if its proper 
@@ -472,10 +511,10 @@ pageBlocks = (stat_instance.st_size) / PAGE_SIZE;
 	if ((stat_instance.st_size) % PAGE_SIZE > 0)
 	pageBlocks = pageBlocks+1;
 	if(pageBlocks > numberOfPages)
-	set = FALSE;
+	set = 0;
 	else 
-	set = TRUE;
-	if(set)
+	set = 1;
+	if(set == 1)
 	{
 	hold_size = (numberOfPages - pageBlocks) *PAGE_SIZE;
 	for (ctr = 0 ; ctr < hold_size ; ctr ++)
@@ -484,6 +523,7 @@ pageBlocks = (stat_instance.st_size) / PAGE_SIZE;
 	else
 	printf ("\nWe already ensured capacity");
 Return_Code = RC_OK;
+}
 else
 {
 printf ("\nHandle error");
@@ -493,35 +533,3 @@ return Return_Code;
 }
 
 
-int check_access (char *fn,char type)
-{
-int amode;
-switch ( type ) 
-{
-case 'e':
-// for existence
-amode = 00;
-break;
-
-case 'r':
-// for reading
-amode = 04;
-break;
-
-case 'w':
-// for writing
-amode = 02;
-break;
-
-case 'x':
-// for reading and writing
-amode = 06;
-break;
-
-default:
-// return -1
-return -1;
-break;
-}
-return access(fn, amode);
-}
