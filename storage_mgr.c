@@ -6,9 +6,9 @@
 #include "fcntl.h"            // File control
 #include "unistd.h"           // For access and file existence
 
-//initStorageManager ()
-//{//initialize any of varibales if needed
-//}
+void initStorageManager (void)
+{//initialize any of varibales if needed
+}
 
 int check_access (char *fn,char type)
 {
@@ -58,7 +58,7 @@ rval = check_access(fileName,'e');
 	Return_Code = RC_OK;
 	}
 // Open file
-File_Pointer = fopen (fileName,"w");
+File_Pointer = fopen (fileName,"wb");
 	// Check for return code when file creates
 	if (File_Pointer == NULL)
 	{
@@ -92,7 +92,7 @@ rval = check_access(fileName,'r');
 	if (rval != -1)
 	{
 	printf("\n File exists and has read access");
-	File_Pointer = fopen(fileName, "r+");
+	File_Pointer = fopen(fileName, "rb+");
 		if(File_Pointer == NULL)
 		{
 		printf("\nYou have no read access to this file");
@@ -102,21 +102,25 @@ rval = check_access(fileName,'r');
 		else
 		{
 		// if opened get the entire file size using sys/stat
-		printf("\nFile named %s opened successfully",fHandle->fileName);
+		printf("\nFile named %s opened successfully",fileName);
 		FILE_SIZE = stat_sample.st_size;
 		printf("\nFile opened successfully");
-		if (stat(fHandle->fileName, &stat_sample) == 0)
+		if (stat(fileName, &stat_sample) == 0)
 		{
 		// Then divide by PAGE_SIZE
 		Page_Blocks = (FILE_SIZE)/PAGE_SIZE;
 			// Assign no of pages to struct element
 			if ((FILE_SIZE%PAGE_SIZE) > 0)
+			{
 			fHandle -> totalNumPages = (Page_Blocks+1);
+			}
 			else
-			fHandle -> totalNumPages = Page_Blocks ;
+			{
+			fHandle -> totalNumPages = 1 ;
+			}
 		// initilize rest 2 and mgmt_Info to 0
         	fHandle -> mgmtInfo = File_Pointer;
-			fHandle -> fileName = fileName;
+		fHandle -> fileName = fileName;
         	fHandle -> curPagePos = 0;
         	Return_Code = RC_OK;
 		}
@@ -129,15 +133,15 @@ rval = check_access(fileName,'r');
 	Return_Code = RC_FILE_NOT_FOUND;
 	}
 exit:
+printf("Open function done");
 return Return_Code;
 }
 
 RC closePageFile (SM_FileHandle *fHandle)
 {
 RC Return_Code;
-FILE *File_Pointer; 
 int rval;
-
+printf("\n Entered Closefile method");
 //Check for file existence
 //Check fo existence
 if (fHandle == NULL)
