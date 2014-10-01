@@ -69,7 +69,7 @@ File_Pointer = fopen (fileName,"wb");
 	{
 	// File opened
 	// Create if not exists and pointer returns not null
-	printf("\n File created");
+	printf("\nFile created and opened to write null characters");
 	// Fill it with null bytes for first page (of PAGE_SIZE)
 	for(ctr=0 ; ctr<PAGE_SIZE; ctr++)
 	fprintf(File_Pointer,"%c",'\0');
@@ -91,7 +91,7 @@ rval = check_access(fileName,'r');
 	//Check fo existence
 	if (rval != -1)
 	{
-	printf("\n File exists and has read access");
+	printf("\nFile exists and has read access");
 	File_Pointer = fopen(fileName, "rb+");
 		if(File_Pointer == NULL)
 		{
@@ -133,7 +133,6 @@ rval = check_access(fileName,'r');
 	Return_Code = RC_FILE_NOT_FOUND;
 	}
 exit:
-printf("Open function done");
 return Return_Code;
 }
 
@@ -145,16 +144,21 @@ printf("\n Entered Closefile method");
 //Check for file existence
 //Check fo existence
 if (fHandle == NULL)
+{
+printf("not init");
 Return_Code = RC_FILE_HANDLE_NOT_INIT; 
+}
 //if exists, check mgmtInfo  
-else if (fclose ((fHandle->mgmtInfo) == 0))  
+else if (fclose (fHandle -> mgmtInfo) == 0)  
 {
 printf("\nFile named %s closed successfully",fHandle->fileName);
 Return_Code = RC_OK;
 }
 else 
+{
 printf("\nFile closing error");
 Return_Code = RC_FILE_HANDLE_NOT_INIT;
+}
 return Return_Code;
 }
 
@@ -243,6 +247,8 @@ return Block_Pos;
 RC readFirstBlock (SM_FileHandle *fHandle, SM_PageHandle memPage)
 {
 RC Return_Code;
+FILE *File_Pointer;
+File_Pointer = fHandle->mgmtInfo;
 // Check for mgmt_Info and if its proper 
 if ( fHandle -> mgmtInfo = NULL)
 {
@@ -254,14 +260,16 @@ else
 // read first block
 // current postion of page to one
 	// Seek to first block (fp,0,seek_set)
-	fseek (fHandle -> mgmtInfo , 0 , SEEK_SET);
+	fseek ( File_Pointer , 0 , SEEK_SET);
+	rewind (File_Pointer);
 	// fread (page handle,size of page,no of blocks to read,fp)
 	printf("\nReading first block...");
-	fread ( memPage, PAGE_SIZE , 1, fHandle -> mgmtInfo);
+	fread ( memPage, PAGE_SIZE , 1, File_Pointer);
 	// Set the position of page in a file
 	fHandle->curPagePos=1;
 	Return_Code = RC_OK ;
 }
+free (File_Pointer);
 return Return_Code;
 }
 
@@ -387,6 +395,7 @@ return Return_Code;
 RC writeBlock (int pageNum, SM_FileHandle *fHandle, SM_PageHandle memPage)
 {
 RC Return_Code;
+printf(fHandle->mgmtInfo);
 // Check for mgmt_Info and if its proper 
 if ( fHandle -> mgmtInfo = NULL)
 {
@@ -395,20 +404,12 @@ printf("\nHandle seeking error");
 }
 else
 {
-	// check for no of pages (If more return RC_READ_NON_EXISTING_PAGE 4) then write block
-	if( pageNum > fHandle-> totalNumPages )
-	{
-	Return_Code = RC_READ_NON_EXISTING_PAGE;
-	printf("\nPage requested wasn't found");
-	}
-	else
-	{
 		printf("\nPage exists");
-		// Seek it to no of pages passed fseek(file pointer,PAGE_SIZE(no of pages-1),SEEK_SET))
-		fseek (fHandle -> mgmtInfo , PAGE_SIZE * (pageNum - 1) , SEEK_SET);
+		// Seek it to no of pages passed fseek(file pointer,PAGE_SIZE(no of pages),SEEK_SET))
+		fseek ( fHandle->mgmtInfo ,(PAGE_SIZE * pageNum),SEEK_SET);
 		// fwrite (page handle,PAGE_SIZE,1,fp)
 		printf("\nReading current block...");
-		if (fwrite ( memPage, PAGE_SIZE , 1, fHandle -> mgmtInfo) != 0)
+		if (fwrite ( memPage, PAGE_SIZE , 1, fHandle->mgmtInfo) != 0)
 		{
 		// Set the current position of page in a file
 		fHandle->curPagePos=pageNum;
@@ -421,7 +422,7 @@ else
 		RC_message = "\nNo Write access to file";	
 		printf(RC_message);
 		}
-	}
+	closePageFile(fHandle);
 }
 return Return_Code;
 }
