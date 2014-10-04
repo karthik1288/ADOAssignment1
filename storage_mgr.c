@@ -278,6 +278,8 @@ return Return_Code;
 RC readPreviousBlock (SM_FileHandle *fHandle, SM_PageHandle memPage)
 {
 RC Return_Code;
+FILE *File_Pointer;
+File_Pointer = fHandle->mgmtInfo;
 // Check for mgmt_Info and if its proper 
 if ( fHandle -> mgmtInfo = NULL)
 {
@@ -286,20 +288,21 @@ printf("\nHandle seeking error");
 }
 else
 {
-	if (fHandle -> curPagePos == 1)
+	if (fHandle -> curPagePos == 0)
 	{
-	printf("\nPage requested doesnt exist as now we are in page 1");
+	printf("\nPage requested doesnt exist as now we are in first block");
 	Return_Code = RC_READ_NON_EXISTING_PAGE;
 	}
 	else
 	{
 	// Seek to first block (fp,0,seek_set)
-	fseek (fHandle -> mgmtInfo , ( fHandle->curPagePos - 2) , SEEK_SET);
+	fseek (File_Pointer , ( fHandle->curPagePos - 1) , SEEK_SET);
 	// fread (page handle,size of page,no of blocks to read,fp)
 	printf("\nReading previous block...");
-	fread ( memPage, PAGE_SIZE , 1, fHandle -> mgmtInfo);
+	fread ( memPage, PAGE_SIZE , 1, File_Pointer);
 	// Set the position of page in a file
 	fHandle->curPagePos= fHandle->curPagePos-1 ;
+	fHandle ->mgmtInfo = File_Pointer;
 	Return_Code = RC_OK ;
 	}
 }
@@ -309,6 +312,11 @@ return Return_Code;
 RC readCurrentBlock (SM_FileHandle *fHandle, SM_PageHandle memPage)
 {
 RC Return_Code;
+int pagePos;
+FILE *File_Pointer;
+File_Pointer = fHandle->mgmtInfo;
+pagePos = (int) fHandle -> curPagePos;
+printf("Current page pos is:%d",pagePos);
 // Check for mgmt_Info and if its proper 
 if ( fHandle -> mgmtInfo = NULL)
 {
@@ -325,11 +333,13 @@ else
 	else
 	{
 	// Seek to next block (fp,0,seek_set)
-	fseek (fHandle -> mgmtInfo , 0 , SEEK_CUR);
+	fseek (File_Pointer ,PAGE_SIZE*(pagePos) , SEEK_SET);
 	// fread (page handle,size of page,no of blocks to read,fp)
 	printf("\nReading current block...");
-	fread ( memPage, PAGE_SIZE , 1, fHandle -> mgmtInfo);
+	fread ( memPage, PAGE_SIZE , 1, File_Pointer);
+	fHandle->mgmtInfo = File_Pointer;
 	Return_Code = RC_OK ;
+	
 	}
 }
 return Return_Code;
@@ -338,8 +348,10 @@ return Return_Code;
 RC readNextBlock (SM_FileHandle *fHandle, SM_PageHandle memPage)
 {
 RC Return_Code;
+FILE *File_Pointer;
+File_Pointer = fHandle->mgmtInfo;
 // Check for mgmt_Info and if its proper 
-if ( fHandle -> mgmtInfo = NULL)
+if ( File_Pointer == NULL)
 {
 Return_Code = RC_FILE_HANDLE_NOT_INIT;
 printf("\nHandle seeking error");
@@ -354,12 +366,13 @@ else
 	else
 	{
 	// Seek to first block (fp,0,seek_set)
-	fseek (fHandle -> mgmtInfo , ( fHandle->curPagePos ) , SEEK_SET);
+	fseek (File_Pointer ,PAGE_SIZE*(fHandle->curPagePos + 1 ) , SEEK_SET);
 	// fread (page handle,size of page,no of blocks to read,fp)
-	printf("\nReading previous block...");
-	fread ( memPage, PAGE_SIZE , 1, fHandle -> mgmtInfo);
+	printf("\nReading next block...");
+	fread ( memPage, PAGE_SIZE , 1, File_Pointer);
 	// Set the position of page in a file
-	fHandle->curPagePos= fHandle->curPagePos+1 ;
+	fHandle->curPagePos= fHandle->curPagePos + 1 ;
+	fHandle->mgmtInfo = File_Pointer;
 	Return_Code = RC_OK ;
 	}
 }
@@ -369,8 +382,10 @@ return Return_Code;
 RC readLastBlock (SM_FileHandle *fHandle, SM_PageHandle memPage)
 {
 RC Return_Code;
+FILE *File_Pointer;
+File_Pointer= fHandle->mgmtInfo;
 // Check for mgmt_Info and if its proper 
-if ( fHandle -> mgmtInfo = NULL)
+if ( File_Pointer == NULL)
 {
 Return_Code = RC_FILE_HANDLE_NOT_INIT;
 printf("\nHandle seeking error");
@@ -380,12 +395,13 @@ else
 // read last block
 // current position of page to no of pages
 	// Seek to first block (fp,0,seek_set)
-	fseek (fHandle -> mgmtInfo , PAGE_SIZE , SEEK_END);
+	fseek (File_Pointer , PAGE_SIZE , SEEK_END);
 	// fread (page handle,size of page,no of blocks to read,fp)
 	printf("\nReading first block...");
-	fread ( memPage, PAGE_SIZE , 1, fHandle -> mgmtInfo);
+	fread ( memPage, PAGE_SIZE , 1, File_Pointer);
 	// Set the position of page in a file
 	fHandle->curPagePos= fHandle-> totalNumPages;
+	fHandle->mgmtInfo = File_Pointer;
 	Return_Code = RC_OK ;
 }
 return Return_Code;
@@ -434,9 +450,9 @@ return Return_Code;
 RC writeCurrentBlock (SM_FileHandle *fHandle, SM_PageHandle memPage)
 {
 RC Return_Code;
-FILE *fp;
+FILE *File_Pointer;
 // Check for mgmt_Info and if its proper 
-if ( fHandle -> mgmtInfo = NULL)
+if ( File_Pointer ==  NULL)
 {
 Return_Code = RC_FILE_HANDLE_NOT_INIT;
 printf("\nHandle seeking error");
@@ -444,7 +460,7 @@ printf("\nHandle seeking error");
 else
 {
 	// check for no of pages (If more return RC_READ_NON_EXISTING_PAGE 4) then write block
-	if(fHandle->curPagePos > fHandle-> totalNumPages )
+	if(fHandle->curPagePos > (fHandle-> totalNumPages-1) )
 	{
 	Return_Code = RC_READ_NON_EXISTING_PAGE;
 	printf("\nPage requested wasn't found");
@@ -454,13 +470,14 @@ else
 		//fp = 0; 
 		printf("\nPage exists");
 		// Seek it to no of pages passed fseek(file pointer,PAGE_SIZE(no of pages-1),SEEK_SET))
-		fseek (fHandle -> mgmtInfo , 0 , SEEK_CUR);
+		fseek (File_Pointer , 0 , SEEK_CUR);
 		// fwrite (page handle,PAGE_SIZE,1,fp)
 		printf("\nReading current block...");
-		if (fwrite ( memPage, PAGE_SIZE , 1, fHandle -> mgmtInfo) != 0)
+		if (fwrite ( memPage, PAGE_SIZE , 1, File_Pointer) != 0)
 		{
 		// Set the current position of page in a file
 		Return_Code = RC_OK ;
+		fHandle->mgmtInfo = File_Pointer;
 		}
 		else
 		{
@@ -478,24 +495,20 @@ RC appendEmptyBlock (SM_FileHandle *fHandle)
 {
 FILE *File_Pointer;
 RC Return_Code;
+File_Pointer = fHandle->mgmtInfo;
 int ctr;
-// Check for mgmt_Info and if its proper 
-if ( fHandle -> mgmtInfo = NULL)
+if (File_Pointer  = NULL)
 {
 Return_Code = RC_FILE_HANDLE_NOT_INIT;
 printf("\nHandle seeking error");
 }
 else
 {
-// update no of pages = pages +1
-fHandle -> totalNumPages ++;
-// Seek it to last page fseek(file pointer,PAGE_SIZE,SEEK_END)
-fseek ( fHandle -> mgmtInfo , PAGE_SIZE , SEEK_END );
 // Fill it with \0 bytes for PAGE_SIZE bytes
 for(ctr = 0 ; ctr<PAGE_SIZE; ctr++)
 fprintf(File_Pointer,"%c",'\0');
 // current page position to last page
-fHandle -> curPagePos = fHandle-> totalNumPages;
+fHandle->mgmtInfo = File_Pointer;
 Return_Code = RC_OK;
 }
 return Return_Code;
