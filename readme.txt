@@ -96,7 +96,7 @@ b) For executing additional test cases:
 2)If initialized,return position of the page in file.
 
 	Function : readFirstBlock
-			---------------
+	-------------------------
 
 1)Check if the file handler has been initialzed. 
 
@@ -106,7 +106,7 @@ b) For executing additional test cases:
 
 
 	Function : readPreviousBlock
-			------------------
+	----------------------------
 1)Check if the file handler has been initialzed.
  
 2)Check if we are trying to access non existing page in the file.
@@ -123,6 +123,7 @@ b) For executing additional test cases:
 2)If we are reading a non existing page ,then throw an error.
 
 3)Read the content of the current page position to mempage.
+
 
 	Function : readNextBlock
 	------------------------
@@ -145,8 +146,9 @@ b) For executing additional test cases:
 
 3)Read the content to mempage.
 
+
 	Function: writeBlock
-	------------------------- 
+	---------------------
 	
 1)Check if the file handler has been initialzed.
 
@@ -154,14 +156,15 @@ b) For executing additional test cases:
 	
 3)Write Contents to the file. If failed,throw an error message. 
 
+
 	Function: writeCurrentBlock
-	--------------------------------
+	----------------------------
 	
 1)Check if the file handler has been initialzed.
 
 2)Check if we are trying to access a non existing page in the file.
 
-3)Seek the file pointer to the number of pages passed .
+3)Seek the file pointer to the number of pages passed.
 
 4)Write Contents to the file. If failed,throw an error message. 
 
@@ -187,4 +190,38 @@ b) For executing additional test cases:
 2) Check if the size of the page block is greater than the number of pages.If true,then the capacity has been ensured.
 
 3) Else,print'\0' for the remaining pages.
+
+
+3) Additional Test Cases
+------------------------
+
+We have included additional test cases for executing the following functions.
+
+
+-GetBlockPosition
+
+-ReadCurrentBlock
+
+-ReadPreviousBlock
+
+-ReadNextBlock
+
+-WriteCurrentBlock
+
+-ReadLastBlock
+
+-EnsureCapacity
+
+
+4) Implementation
+-----------------
+
+Before the actual coding of the project was done,we figured out the cause and effect of the problem,which made the implementation more systematic.
+
+We then split the project into modules and worked on them.
+
+
+
+ 
+
 
