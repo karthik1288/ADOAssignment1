@@ -180,8 +180,6 @@ b) For executing additional test cases:
 
 
 
-
-
 	Function : ensureCapacity
 	-----------------------------
 	
@@ -218,10 +216,37 @@ We have included additional test cases for executing the following functions.
 
 Before the actual coding of the project was done,we figured out the cause and effect of the problem,which made the implementation more systematic.
 
-We then split the project into modules and worked on them.
+We then split the project into 3 modules and worked on the modules.
+ 
+The modules being:
+ 
+a)Functions pertaning to open,close,destroy a page file.
+
+b)Functions pertaining to read operations.
+
+c)Functions pertaining to write operation.
+
+then,the code was integrated using GitHub.
+
+The implementation versions with the descriptions are as follows.
+
+Version 	   Date 	   Description				
+----------    --------   ------------
+version 1.0  9/25/2014   Initial code had logical and syntax 					   errors
+
+version 1.1  9/26/2014   Errors had been rectified and makefile 					   was created
+
+version 1.2  9/27/2014   Changes in ensure capacity were   				              incorporated     
+
+version 1.3  10/02/2014  All test cases were sucessfully 					  	   implemented and additional test cases 					   were added
+
+version 1.4  10/03/2014  makefile was updated and comments were 
+(FINAL)			   added to improve readability of the 					   code.
+ 
 
 
 
+----------------------------------------------------------------------------------------------------------------------------------
  
 
 
